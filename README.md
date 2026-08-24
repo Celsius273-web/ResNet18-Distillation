@@ -30,10 +30,11 @@ Size Reduction: 3.99x
 
 Final Test Accuracy: 87.89%
 
-<img width="617" height="390" alt="image" src="https://github.com/user-attachments/assets/06e727a2-2398-4060-a220-9f10c853c29e" />
+<img width="617" height="390" alt="image" src="https://github.com/user-attachments/assets/87fda41e-c3b3-449d-8fae-22cf39a871b2" />
 
 
-<img width="625" height="390" alt="image" src="https://github.com/user-attachments/assets/91772619-1738-45a2-923e-44fee188e004" />
+
+<img width="625" height="390" alt="image" src="https://github.com/user-attachments/assets/62b90bad-a3a2-4a6d-8012-bc46dcf0cf9b" />
 
 
 ## How it works:
