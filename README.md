@@ -1,2 +1,67 @@
-# ResNet18-Distillation
-Knowledge distillation implementation compressing ResNet18 for CIFAR-10. The distilled model achieves 4x size reduction (10.7MB vs 42.7MB) with 87.89% test accuracy.
+# ResNet18-Knowledge-Distillation
+Knowledge distillation implementation compressing ResNet18 with the CIFAR-10 dataset. The student model achieves 4x size reduction (10.7MB vs 42.7MB) with 87.89% test accuracy. 
+
+Knowledge distillation implementation demonstrating model compression and optimization tradeoffs. This project trains a lightweight student ResNet18 to mimic a larger teacher model on CIFAR-10.
+
+## Results:
+
+
+4x smaller model (10.69 MB vs 42.69 MB)
+
+87.89% test accuracy 
+
+3.2ms inference latency per image
+
+2.8M parameters (vs 11M in teacher)
+
+
+### Inference + Model Latencies
+Student Model Latency: 2.6423 ms
+
+Teacher Model Latency: 2.9549 ms
+
+Speedup: 1.12x
+
+Student Model Size: 10.69 MB
+
+Teacher Model Size: 42.69 MB
+
+Size Reduction: 3.99x
+
+Final Test Accuracy: 87.89%
+
+<img width="617" height="390" alt="image" src="https://github.com/user-attachments/assets/06e727a2-2398-4060-a220-9f10c853c29e" />
+
+
+<img width="625" height="390" alt="image" src="https://github.com/user-attachments/assets/91772619-1738-45a2-923e-44fee188e004" />
+
+
+## How it works:
+The distillation process combines two loss components. Regular cross entropy loss ensures the student learns the actual labels. KL divergence loss forces the student to match the teacher's probability distributions using temperature scaling. This allows the students to mimic the patterns teacher had learned not just what information the labels provide. 
+
+## Methodology:
+Train/validation splits, learning rate scheduling, batch normalization, and explicit latency profiling with GPU synchronization. Inference latency measured over 100 runs with GPU warm up to eliminate noise.
+
+## Why this matters:
+Fast inference speeds saves resources when in use. Distillation trades minimal accuracy loss for substantial practical benefits making it worth while for many systems.
+
+## How to Run
+Clone repo: git clone https://github.com/Celsius273-web/ResNet18-Knowledge-Distillation
+
+Install dependencies: pip install -r requirements.txt
+
+Download CIFAR-10 (automatic on first run)
+
+Run training: python distillation.py
+
+Training takes 3-5 minutes on GPU (Colab recommended)
+
+Results printed to console: model size, latency, accuracy
+
+Trained weights saved as student_distilled.pth
+
+View plots: training loss and accuracy curves in output
+
+Load saved model: torch.load('student_distilled.pth')
+
+Optional: Run distillation.ipynb in Colab for interactive execution
