@@ -5,17 +5,6 @@ Knowledge distillation implementation demonstrating model compression and optimi
 
 ## Results:
 
-
-4x smaller model (10.69 MB vs 42.69 MB)
-
-87.89% test accuracy 
-
-3.2ms inference latency per image
-
-2.8M parameters (vs 11M in teacher)
-
-
-### Inference + Model Latencies
 Student Model Latency: 2.6423 ms
 
 Teacher Model Latency: 2.9549 ms
@@ -29,6 +18,7 @@ Teacher Model Size: 42.69 MB
 Size Reduction: 3.99x
 
 Final Test Accuracy: 87.89%
+
 
 <img width="617" height="390" alt="image" src="https://github.com/user-attachments/assets/87fda41e-c3b3-449d-8fae-22cf39a871b2" />
 
