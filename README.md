@@ -1,58 +1,159 @@
-# ResNet18-Knowledge-Distillation
-Knowledge distillation implementation compressing ResNet18 with the CIFAR-10 dataset. The student model achieves 4x size reduction (10.7MB vs 42.7MB) with 87.89% test accuracy. 
+# ResNet-18 Knowledge Distillation
 
-Knowledge distillation implementation demonstrating model compression and optimization tradeoffs. This project trains a lightweight student ResNet18 to mimic a larger teacher model on CIFAR-10.
+PyTorch implementation of knowledge distillation for compressing a ResNet-18 image classifier on CIFAR-10.
 
-## Results:
+A smaller student network learns from a larger teacher using ground-truth labels and teacher-generated soft targets. The resulting student model is approximately 4x smaller while achieving 87.89% test accuracy.
 
-Student Model Latency: 2.6423 ms
+## Results
 
-Teacher Model Latency: 2.9549 ms
+| Metric            |   Teacher |   Student |
+| :---------------- | --------: | --------: |
+| Model size        |  42.69 MB |  10.69 MB |
+| Parameters        |    11.18M |     2.80M |
+| Inference latency | 2.9549 ms | 2.6423 ms |
+| Test accuracy     |         — |    87.89% |
+| Size reduction    |         — |     3.99x |
+| Speedup           |         — |     1.12x |
 
-Speedup: 1.12x
+Latency was measured on an NVIDIA T4 GPU using a Google Colab runtime.
 
-Student Model Size: 10.69 MB
+## Method
 
-Teacher Model Size: 42.69 MB
+The student uses the same ResNet-18 residual architecture as the teacher with reduced channel widths. This reduces the parameter count and model size while preserving the overall residual network structure.
 
-Size Reduction: 3.99x
+During training, the student receives two sources of supervision:
 
-Final Test Accuracy: 87.89%
+* Cross-entropy loss against CIFAR-10 ground-truth labels
+* KL-divergence loss between the temperature-scaled teacher and student output distributions
 
+The total loss combines both objectives using a temperature of `4.0` and a distillation weight of `0.5`.
 
-<img width="617" height="390" alt="image" src="https://github.com/user-attachments/assets/87fda41e-c3b3-449d-8fae-22cf39a871b2" />
+```text
+                    CIFAR-10 Image
+                           |
+              +------------+------------+
+              |                         |
+              v                         v
+      Teacher ResNet-18        Student ResNet-18
+        11.18M params            2.80M params
+              |                         |
+              |         Logits          |
+              +------------+------------+
+                           |
+                  Distillation Loss
+                           |
+              +------------+------------+
+              |                         |
+              v                         v
+       Cross-Entropy Loss        KL-Divergence Loss
+              |                         |
+              +------------+------------+
+                           |
+                           v
+                    Student Update
+```
 
+## Architecture
 
+The teacher uses ResNet-18 with channel widths of `64, 128, 256, 512` across its four residual stages.
 
-<img width="625" height="390" alt="image" src="https://github.com/user-attachments/assets/62b90bad-a3a2-4a6d-8012-bc46dcf0cf9b" />
+The student uses reduced widths of `32, 64, 128, 256`.
 
+Both models produce predictions for the 10 CIFAR-10 classes.
 
-## How it works:
-The distillation process combines two loss components. Regular cross entropy loss ensures the student learns the actual labels. KL divergence loss forces the student to match the teacher's probability distributions using temperature scaling. This allows the students to mimic the patterns teacher had learned not just what information the labels provide. 
+| Model   | Parameters | Model Size |
+| :------ | ---------: | ---------: |
+| Teacher |     11.18M |   42.69 MB |
+| Student |      2.80M |   10.69 MB |
 
-## Methodology:
-Train/validation splits, learning rate scheduling, batch normalization, and explicit latency profiling with GPU synchronization. Inference latency measured over 100 runs with GPU warm up to eliminate noise.
+## Training
 
-## Why this matters:
-Fast inference speeds saves resources when in use. Distillation trades minimal accuracy loss for substantial practical benefits making it worth while for many systems.
+| Setting             | Value    |
+| :------------------ | :------- |
+| Dataset             | CIFAR-10 |
+| Batch size          | 128      |
+| Epochs              | 10       |
+| Optimizer           | SGD      |
+| Learning rate       | 0.15     |
+| Momentum            | 0.9      |
+| Weight decay        | 5e-4     |
+| Scheduler           | StepLR   |
+| Scheduler step      | 7 epochs |
+| Scheduler gamma     | 0.1      |
+| Temperature         | 4.0      |
+| Distillation weight | 0.5      |
 
-## How to Run
-Clone repo: git clone https://github.com/Celsius273-web/ResNet18-Knowledge-Distillation
+## Evaluation
 
-Install dependencies: pip install -r requirements.txt
+The training script evaluates the student on the CIFAR-10 test set after each epoch.
 
-Download CIFAR-10 (automatic on first run)
+The final recorded student accuracy is **87.89%**.
 
-Run training: python distillation.py
+Inference latency uses GPU synchronization, 10 warm-up runs, and 100 measured runs.
 
-Training takes 3-5 minutes on GPU (Colab recommended)
+| Benchmark       |    Result |
+| :-------------- | --------: |
+| Student latency | 2.6423 ms |
+| Teacher latency | 2.9549 ms |
+| Speedup         |     1.12x |
+| Student size    |  10.69 MB |
+| Teacher size    |  42.69 MB |
+| Size reduction  |     3.99x |
 
-Results printed to console: model size, latency, accuracy
+The benchmark was run on an NVIDIA T4 GPU through Google Colab.
 
-Trained weights saved as student_distilled.pth
+## Project Structure
 
-View plots: training loss and accuracy curves in output
+ResNet18-Distillation/
+├── resnet18distillation.py
+├── Resnet18Distillation.ipynb
+├── requirements.txt
+├── README.md
+└── LICENSE
 
-Load saved model: torch.load('student_distilled.pth')
+`resnet18distillation.py` contains the training, distillation, evaluation, model-size calculation, and latency benchmarking code.
 
-Optional: Run distillation.ipynb in Colab for interactive execution
+`Resnet18Distillation.ipynb` provides a notebook version of the experiment.
+
+## Running the Project
+
+Clone the repository:
+
+```
+git clone https://github.com/Celsius273-web/ResNet18-Distillation.git
+cd ResNet18-Distillation
+```
+
+Install the dependencies:
+
+```
+pip install -r requirements.txt
+```
+
+Run the training and evaluation script:
+
+```
+python resnet18distillation.py
+```
+
+CIFAR-10 downloads automatically through `torchvision` if the dataset is not already available.
+
+The script trains the student model, evaluates test accuracy, measures model size and inference latency, and saves the trained student weights.
+
+For interactive execution, open `Resnet18Distillation.ipynb` in Jupyter or Google Colab.
+
+## Reproducibility Notes
+
+The reported benchmark was run on an NVIDIA T4 GPU using Google Colab.
+
+Latency results depend on the hardware and benchmark configuration, so they should not be interpreted as hardware-independent performance measurements.
+
+The experiment does not report a final CIFAR-10 accuracy for the teacher. Therefore, this README does not claim a specific accuracy difference between the teacher and student.
+
+## Dependencies
+
+The project uses PyTorch, torchvision, NumPy, Matplotlib, and scikit-learn. Package versions are specified in `requirements.txt`.
+
+## License
+
+MIT License
